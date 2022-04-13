@@ -1,5 +1,5 @@
 import torch
-from datasets.CityscapesDataset import CityscapesDataset
+from dataset.CityscapesDataset import CityscapesDataset
 
 
 def get_cityscapes_data(
