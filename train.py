@@ -26,7 +26,7 @@ def train_model(epoch, model, device, train_loader, optimizer, loss_function, va
     print("Start training...")
     train_loss_min = Inf
     for e in range(epoch):
-        print(f'Epoch: {e}')
+        print("Epoch:", e)
         train_loss = train(model, device, train_loader, optimizer, loss_function)
         print("Train loss:", train_loss)
 
