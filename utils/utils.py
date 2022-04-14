@@ -12,12 +12,13 @@ def get_cityscapes_data(
     eval=False,
     shuffle=True,
     pin_memory=True,
+    num_workers=2
 
 ):
     data = CityscapesDataset(
         mode=mode, split=split, target_type=target_type,transform=transforms, root_dir=root_dir, eval=eval)
 
     data_loaded = torch.utils.data.DataLoader(
-        data, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory)
+        data, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory, num_workers=num_workers)
 
     return data_loaded
