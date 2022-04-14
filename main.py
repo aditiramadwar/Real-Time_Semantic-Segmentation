@@ -10,7 +10,8 @@ import train
 LEARNING_RATE = 0.0005
 
 def main():
-    train_data = utils.get_cityscapes_data(mode='fine', split='train', batch_size = 64)
+    train_data = utils.get_cityscapes_data(mode='fine', split='train', batch_size = 1)
+    valid_data = utils.get_cityscapes_data(mode='fine', split='val', batch_size = 1)
     print("Train data loaded successfully")
 
     use_cuda = torch.cuda.is_available()
