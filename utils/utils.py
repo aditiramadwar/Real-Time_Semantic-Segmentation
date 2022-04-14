@@ -1,11 +1,11 @@
 import torch
-from datasets.CityscapesDataset import CityscapesDataset
+from dataset.CityscapesDataset import CityscapesDataset
 
 
 def get_cityscapes_data(
     mode,
     split,
-    root_dir='datasets/cityscapes',
+    root_dir='Cityscapes',
     target_type="semantic",
     transforms=None,
     batch_size=1,
