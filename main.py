@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from utils import utils
-from model import unet
-from model.UNet import UNet
+
+from model.UNet_backbone import Unet_backbone
+from model.Unet_test import Unet
 import train
 from torchvision import transforms
 from PIL import Image
@@ -22,7 +23,7 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
     print("Device", device, "found sucessfully!")
 
-    current_model = UNet().to(device)
+    current_model = Unet_backbone(backbone_name='resnet34').to(device)
     print("Model loaded")
 
     optimizer = optim.Adam(current_model.parameters(), lr = LEARNING_RATE)
@@ -30,7 +31,7 @@ def main():
     print("Optimizer and Loss defined")
 
     print("############### Start Training ################")
-    train.train_model(20, current_model, device, train_data, optimizer, loss_function)
+    train.train_model(200, current_model, device, train_data, optimizer, loss_function, val_loader=val_data)
 
 if __name__ == '__main__':
     main()
