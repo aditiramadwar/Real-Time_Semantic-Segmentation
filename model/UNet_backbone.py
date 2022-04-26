@@ -158,10 +158,6 @@ if __name__ == "__main__":
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
 
-
-
-
-
     for _ in range(1):
         with torch.set_grad_enabled(True):
             batch = torch.empty(1, 3, 224, 224).normal_()

@@ -22,8 +22,7 @@ class CityscapesDataset(Dataset):
 
         self.label_path = os.path.join(os.getcwd(), root_dir+'/'+self.mode+'/'+self.split)
         self.rgb_path = os.path.join(os.getcwd(), root_dir+'/leftImg8bit/'+self.split)
-        city_list = os.listdir(self.label_path)
-
+        city_list = sorted(os.listdir(self.label_path))
         for city in city_list:
             temp = os.listdir(self.label_path+'/'+city)
             list_items = temp.copy()
@@ -36,9 +35,9 @@ class CityscapesDataset(Dataset):
             # defining paths
             list_items = ['/'+city+'/'+path for path in list_items]
 
-            self.yLabel_list.extend(list_items)
+            self.yLabel_list.extend(sorted(list_items))
             self.XImg_list.extend(
-                ['/'+city+'/'+path for path in os.listdir(self.rgb_path+'/'+city)]
+                ['/'+city+'/'+path for path in sorted(os.listdir(self.rgb_path+'/'+city))]
             )
 
     def __len__(self):
@@ -59,6 +58,6 @@ class CityscapesDataset(Dataset):
         
         y = y.type(torch.LongTensor)
         if self.eval:
-            return image, y, self.XImg_list[index]
+            return image, y, self.XImg_list[index], self.yLabel_list[index]
         else:
-            return image, y, self.XImg_list[index]
+            return image, y, self.XImg_list[index], self.yLabel_list[index]
