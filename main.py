@@ -26,7 +26,6 @@ def main():
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     print("Device", device, "found sucessfully!")
-
     current_model = Unet_backbone(backbone_name='resnet34').to(device)
     print("Model loaded")
 
