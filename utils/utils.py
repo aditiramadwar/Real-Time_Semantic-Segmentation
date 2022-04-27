@@ -5,7 +5,7 @@ from tqdm import tqdm
 from dataset.CityscapesDataset import CityscapesDataset
 from utils.utils import *
 import matplotlib.pyplot as plt
-
+import cv2
 
 if torch.cuda.is_available():
     device = 'cuda:0'
@@ -62,7 +62,7 @@ def save_predictions(data, model, save_path):
             predictions = torch.nn.functional.softmax(predictions, dim=1)
             pred_labels = torch.argmax(predictions, dim=1) 
             pred_labels = pred_labels.float()
-            print("output : " ,s)
+            # print("output : " ,s)
 
 
             # Resizing predicted images too original size
@@ -82,14 +82,21 @@ def save_as_images(pred, folder, image_name):
     # pred = np.transpose(pred.cpu().numpy(), (1,2,0))
     pred = pred.cpu().numpy()[0]
     seg_map = decode_segmap(pred)
-    plt.figure()
-    plt.imshow(seg_map)
-    plt.show()
-    exit(0)
+    # cv2.imshow("e", seg_map)
+    # cv2.waitKey(0)
+    # plt.figure()
+    # plt.imshow(seg_map)
+    # plt.show()
+    # exit(0)
     # tensor_pred = transforms.ToPILImage()(tensor_pred.byte())
-    filename = f"{folder}\{image_name}.png"
-    tensor_pred.save(filename)
+    filename = f"{folder}/{image_name}.png"
+    # tensor_pred.save(filename)
+    # print(filename)
+    plt.imsave(filename, seg_map)
+    # exit(0)
 
+def predict(model, image):
+    pass
 
 def evaluate(data_loader, model, path, save_path):
 

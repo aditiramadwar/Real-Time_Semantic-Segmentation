@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.optim as optim
 from utils.utils import *
 import numpy as np
-
 from model.UNet_backbone import Unet_backbone
 from model.Unet_test import Unet
 from model.UNet import UNet
@@ -47,6 +46,6 @@ def main():
 
     # print("############### Start Training ################")
     # train.train_model(100, current_model, device, train_data, optimizer, loss_function, val_loader=val_data)
-    evaluate(val_data, current_model, "finalUNet_res3490.pt", "test_results")
+    evaluate(test_data, current_model, "finalUNet_res3450.pt", "test_results")
 if __name__ == '__main__':
     main()
