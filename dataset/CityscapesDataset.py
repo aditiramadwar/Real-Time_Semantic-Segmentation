@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 import numpy as np
-
+import albumentations as A
 
 class CityscapesDataset(Dataset):
     def __init__(self, split, root_dir, target_type='semantic', mode='fine', transform=None, eval=False):
@@ -49,15 +49,16 @@ class CityscapesDataset(Dataset):
         y = Image.open(self.label_path+self.yLabel_list[index])
 
         if self.transform is not None:
-            image = self.transform(image)
-            y = self.transform(y)
-
-        image = transforms.ToTensor()(image)
-        y = np.array(y)
-        y = torch.from_numpy(y)
+            # image = transforms.ToTensor()(image)
+            # image = transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))(image)
+            transformed=self.transform(image=np.array(image), mask=np.array(y))
+            image = transformed["image"]
+            # transformed=self.transform[:-1](mask=np.array(y))
+            y = transformed["mask"]
+        # image = transforms.ToTensor()(image)
+        # y = np.array(y)
+        # y = torch.from_numpy(y)
         
         y = y.type(torch.LongTensor)
-        if self.eval:
-            return image, y, self.XImg_list[index], self.yLabel_list[index]
-        else:
-            return image, y, self.XImg_list[index], self.yLabel_list[index]
+    
+        return image, y, self.XImg_list[index], self.yLabel_list[index]
