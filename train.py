@@ -14,24 +14,17 @@ def train(model, device, train_loader, optimizer, loss_function, val_loader):
         image, labels = image.to(device), labels.to(device)
 
         prediction = model(image)
-        # print(prediction.shape)
-        # print(labels.shape)
-        # exit(0)
         optimizer.zero_grad()
         loss = loss_function(prediction, labels)
         loss.backward()
         optimizer.step()
 
         running_loss += loss.item()*image.size(0)
-        # print(prediction.shape)
-        # exit(0)
         running_mIOU += mIOU(labels, prediction)
 
     # calculate average loss
     running_loss = running_loss/len(train_loader)
     running_mIOU = running_mIOU/len(train_loader)
-        
-    # print("Accuracy: {:.2f}".format(calculate_accuracy(image, running_loss)))
     return running_loss, running_mIOU
 
 
@@ -81,7 +74,7 @@ def evaluate(model, data_loader, device, loss_function):
             loss = loss_function(prediction, labels)
             running_loss += loss.item()*image.size(0)
             running_mIOU += mIOU(labels, prediction)
-        
+            break
         running_loss = running_loss/len(data_loader)
         running_mIOU = running_mIOU/len(data_loader)
 

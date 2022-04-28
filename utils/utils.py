@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 from PIL import Image
+import time
 
 if torch.cuda.is_available():
     device = 'cuda:0'
@@ -135,29 +136,28 @@ def real_time_segmentation(model, device, weight_path, video_path, transform = N
     model.eval()
     s = str(video_path)
     pos = s.rfind('/', 0, len(s))
-    print("pos:", pos)
     vid_name = s[pos+1:]  
-    video_output = cv2.VideoWriter('test_results/'+vid_name+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 180, (1024, 2048))
+    video_output = cv2.VideoWriter('test_results/'+vid_name+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 25, (2048, 1024))
 
     model.eval()
     model.to(device)
+    alpha = 0.5
     for frame_name in tqdm(sorted(os.listdir(video_path))):
         new_frame, og_frame = get_tensor(video_path+'/'+frame_name, transform)
+        start_time = time.time()
         segmentations = rt_predict(model, new_frame, transform)
-        if segmentations is not None:
-            # plt.figure()
-            # plt.imshow(segmentations)
-            # plt.show()
-            alpha = 0.3 #
-            segmentations = cv2.normalize(segmentations, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U) 
-            blend = cv2.addWeighted(segmentations, 0.5,  og_frame, 0.5, 0, og_frame)
-            cv2.imshow("img", blend)
-            cv2.waitKey(25) 
-            # video_output.write(segmentations)
-        else:
-            cv2.destroyAllWindows()
-            break
-        # video_output.release()
+        end_time = time.time()
+        segmentations = cv2.normalize(segmentations, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U) 
+        blend = cv2.addWeighted(segmentations, alpha,  og_frame, abs(1-alpha), 0, og_frame)
+        time_taken = end_time - start_time
+        fps = round(1/time_taken, 2)
+
+        cv2.putText(blend, (str(fps)+'FPS'), (2048-500, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2, cv2.LINE_AA)
+        # cv2.imshow("img", blend)
+        # cv2.waitKey(25) 
+        # cv2.destroyAllWindows()
+        video_output.write(blend)
+    video_output.release()
     
 def rt_predict(model, image, transform):
     with torch.no_grad():

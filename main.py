@@ -47,7 +47,7 @@ def main():
     # print("############### Start Training ################")
     # train.train_model(100, current_model, device, train_data, optimizer, loss_function, val_loader=val_data)
     # evaluate_(test_data, current_model, "finalUNet_res3450.pt", "test_results")
-    rt_vid_path = "Cityscapes/leftImg8bit/leftImg8bit_demoVideo/leftImg8bit/demoVideo/stuttgart_00"
+    rt_vid_path = "Cityscapes/leftImg8bit/leftImg8bit_demoVideo/leftImg8bit/demoVideo/stuttgart_02"
     real_time_segmentation(current_model, device, "finalUNet_res3450.pt", rt_vid_path, transform = val_transform)
 if __name__ == '__main__':
     main()
