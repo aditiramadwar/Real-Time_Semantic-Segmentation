@@ -6,13 +6,15 @@ from dataset.CityscapesDataset import CityscapesDataset
 from utils.utils import *
 import matplotlib.pyplot as plt
 import cv2
+import os
+from PIL import Image
 
 if torch.cuda.is_available():
     device = 'cuda:0'
 else:
     device = 'cpu'
 
-colormap = np.zeros((256, 3), dtype=np.uint8)
+colormap = np.zeros((19, 3), dtype=np.uint8)
 colormap[0] = [128, 64, 128]
 colormap[1] = [244, 35, 232]
 colormap[2] = [70, 70, 70]
@@ -32,80 +34,6 @@ colormap[15] = [0, 60, 100]
 colormap[16] = [0, 80, 100]
 colormap[17] = [0, 0, 230]
 colormap[18] = [119, 11, 32]
-
-def decode_segmap(temp):
-    #convert gray scale to color
-    # temp=temp.numpy()
-    r = temp.copy()
-    g = temp.copy()
-    b = temp.copy()
-    for l in range(0, 19):
-        r[temp == l] = colormap[l][0]
-        g[temp == l] = colormap[l][1]
-        b[temp == l] = colormap[l][2]
-
-    rgb = np.zeros((temp.shape[0], temp.shape[1], 3))
-    rgb[:, :, 0] = r / 255.0
-    rgb[:, :, 1] = g / 255.0
-    rgb[:, :, 2] = b / 255.0
-    return rgb
-def save_predictions(data, model, save_path):    
-    model.eval()
-    model.to(device)
-    with torch.no_grad():
-        for idx, batch in enumerate(tqdm(data)):
-
-            X, y, s, _ = batch # here 's' is the name of the file stored in the root directory
-            X, y = X.to(device), y.to(device)
-            predictions = model(X) 
-            
-            predictions = torch.nn.functional.softmax(predictions, dim=1)
-            pred_labels = torch.argmax(predictions, dim=1) 
-            pred_labels = pred_labels.float()
-            # print("output : " ,s)
-
-
-            # Resizing predicted images too original size
-            pred_labels = transforms.Resize((1024, 2048))(pred_labels)             
-
-            # Configure filename & location to save predictions as images
-            s = str(s)
-            pos = s.rfind('/', 0, len(s))
-            name = s[pos+1:-18]  
-            
-
-            save_as_images(pred_labels, save_path, name)                
-
-
-
-def save_as_images(pred, folder, image_name):
-    # pred = np.transpose(pred.cpu().numpy(), (1,2,0))
-    pred = pred.cpu().numpy()[0]
-    seg_map = decode_segmap(pred)
-    # cv2.imshow("e", seg_map)
-    # cv2.waitKey(0)
-    # plt.figure()
-    # plt.imshow(seg_map)
-    # plt.show()
-    # exit(0)
-    # tensor_pred = transforms.ToPILImage()(tensor_pred.byte())
-    filename = f"{folder}/{image_name}.png"
-    # tensor_pred.save(filename)
-    # print(filename)
-    plt.imsave(filename, seg_map)
-    # exit(0)
-
-def predict(model, image):
-    pass
-
-def evaluate(data_loader, model, path, save_path):
-
-    checkpoint = torch.load(path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
-    print(f'{path} has been loaded and initialized')
-    save_predictions(data_loader, model, save_path)
-
 
 def get_cityscapes_data(
     mode,
@@ -127,3 +55,115 @@ def get_cityscapes_data(
         data, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory, num_workers=num_workers)
 
     return data_loaded
+
+def decode_segmap(temp):
+    temp = temp.cpu().numpy()[0]
+    #convert gray scale to color
+    # temp=temp.numpy()
+    r = temp.copy()
+    g = temp.copy()
+    b = temp.copy()
+    for l in range(0, 19):
+        r[temp == l] = colormap[l][0]
+        g[temp == l] = colormap[l][1]
+        b[temp == l] = colormap[l][2]
+
+    rgb = np.zeros((temp.shape[0], temp.shape[1], 3))
+    rgb[:, :, 0] = r / 255.0
+    rgb[:, :, 1] = g / 255.0
+    rgb[:, :, 2] = b / 255.0
+    rgb  = cv2.cvtColor(rgb.astype('float32'), cv2.COLOR_RGB2BGR) 
+    return rgb
+
+def save_predictions(data, model, save_path):    
+    model.eval()
+    model.to(device)
+    with torch.no_grad():
+        for _, batch in enumerate(tqdm(data)):
+
+            X, y, s, _ = batch
+            X, y = X.to(device), y.to(device)
+            predictions = model(X) 
+            predictions = torch.nn.functional.softmax(predictions, dim=1)
+            pred_labels = torch.argmax(predictions, dim=1) 
+            pred_labels = pred_labels.float()
+            pred_labels = transforms.Resize((1024, 2048))(pred_labels) 
+            s = str(s)
+
+            pos = s.rfind('/', 0, len(s))
+            name = s[pos+1:-18]      
+            save_as_images(pred_labels, save_path, name)                
+
+
+def save_as_images(pred, folder, image_name):
+    seg_map = decode_segmap(pred)
+    plt.figure()
+    plt.imshow(seg_map)
+    plt.show()
+    filename = f"{folder}/{image_name}.png"
+    plt.imsave(filename, seg_map)
+
+def evaluate_(data_loader, model, path, save_path):
+
+    checkpoint = torch.load(path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    print(f'{path} has been loaded and initialized')
+    save_predictions(data_loader, model, save_path)
+
+###########################################################################################################
+def get_tensor(path, transform = None):
+    frame = Image.open(path)
+    if transform is not None:
+            og_img = np.array(frame)
+            transformed = transform(image = og_img)
+            image = transformed["image"]
+            image = image.unsqueeze(0)
+            return image, og_img
+    return None, None
+
+def get_labels(predictions):
+    predictions = torch.nn.functional.softmax(predictions, dim=1)
+    pred_labels = torch.argmax(predictions, dim=1) 
+    pred_labels = pred_labels.float()
+    return pred_labels
+
+def real_time_segmentation(model, device, weight_path, video_path, transform = None):
+
+    checkpoint = torch.load(weight_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    s = str(video_path)
+    pos = s.rfind('/', 0, len(s))
+    print("pos:", pos)
+    vid_name = s[pos+1:]  
+    video_output = cv2.VideoWriter('test_results/'+vid_name+'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 180, (1024, 2048))
+
+    model.eval()
+    model.to(device)
+    for frame_name in tqdm(sorted(os.listdir(video_path))):
+        new_frame, og_frame = get_tensor(video_path+'/'+frame_name, transform)
+        segmentations = rt_predict(model, new_frame, transform)
+        if segmentations is not None:
+            # plt.figure()
+            # plt.imshow(segmentations)
+            # plt.show()
+            alpha = 0.3 #
+            segmentations = cv2.normalize(segmentations, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U) 
+            blend = cv2.addWeighted(segmentations, 0.5,  og_frame, 0.5, 0, og_frame)
+            cv2.imshow("img", blend)
+            cv2.waitKey(25) 
+            # video_output.write(segmentations)
+        else:
+            cv2.destroyAllWindows()
+            break
+        # video_output.release()
+    
+def rt_predict(model, image, transform):
+    with torch.no_grad():
+        image = image.to(device)
+        predictions = model(image) 
+        pred_labels = get_labels(predictions)
+        pred_labels = transforms.Resize((1024, 2048))(pred_labels)
+        color_labels = decode_segmap(pred_labels)
+        return color_labels

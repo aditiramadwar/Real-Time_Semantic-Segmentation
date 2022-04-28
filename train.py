@@ -58,11 +58,6 @@ def train_model(num_epochs, model, device, train_loader, optimizer, loss_functio
         writer.add_scalar("Loss/Validation", val_loss, epoch)
         writer.add_scalar("mIOU/Train", running_mIOU, epoch)
         writer.add_scalar("mIOU/Validation", val_mIOU, epoch)
-        
-    # model.load_state_dict(torch.load('model_cifar.pt'))
-    # print("Model Saved Successfully")
-
-
 
 def save_checkpoint(save_path, model, optimizer, val_loss):
     if save_path==None:

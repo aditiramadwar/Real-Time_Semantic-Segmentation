@@ -21,6 +21,7 @@ transform=A.Compose(
 train_data = utils.get_cityscapes_data(mode='fine', split='train', num_workers = 4, batch_size = 1, transforms = transform)
 
 img, l, a,b = next(iter(train_data))
+print(img.size)
 img = torchvision.utils.make_grid(img)
 # l = torchvision.utils.make_grid(l)
 img = np.transpose(img.numpy(), (1,2,0))
